@@ -1,0 +1,10 @@
+.shell {
+  min-height: calc(100vh - (2 * var(--space-6)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text {
+  margin: 0;
+}

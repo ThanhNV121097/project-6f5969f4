@@ -36,3 +36,40 @@ None. Single table only.
 - Migration creates table and inserts canonical row.
 - Backend reads row `id = 1`.
 - Missing row, blank text, or unexpected row state returns error per `services.md`.
+
+## Story extension — Render centered Hello Word
+
+Reviewed frontend mock contract:
+
+```ts
+export const greetingMock = {
+  displayText: 'Hello Word',
+} as const;
+```
+
+No new entity is needed. Existing `greetings.display_text` maps to API field `displayText` for the centered page.
+
+Data source mapping:
+
+| UI field | Source table | Source column | Rule |
+|---|---|---|---|
+| `displayText` | `greetings` | `display_text` | Return exact stored value for canonical row `id = 1`; preserve spelling, spacing, and case. |
+
+Indexes:
+
+- No new index. Primary key `greetings.id` serves `GET /v1/greeting` query by canonical row id.
+
+## Migration plan — Render centered Hello Word
+
+Forward:
+
+1. No schema migration required for this story. `greetings` already stores the only value the page reads.
+2. Ensure existing seed row remains `id = 1`, `display_text = 'Hello Word'` from the base migration.
+
+Backward:
+
+1. No rollback migration required because this story adds no table, column, constraint, or index.
+
+Safety on populated tables:
+
+- Safe. No data definition or data rewrite is performed for this story.
