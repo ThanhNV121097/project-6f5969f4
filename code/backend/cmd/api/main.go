@@ -175,11 +175,13 @@ func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
 }
 
 func isDBUnavailable(err error) bool {
-	var pqErr interface{ SQLState() string }
-	if errors.As(err, &pqErr) {
-		return false
-	}
-	return true
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "connection refused") ||
+		strings.Contains(msg, "no such host") ||
+		strings.Contains(msg, "server closed the connection") ||
+		strings.Contains(msg, "bad connection") ||
+		strings.Contains(msg, "timeout") ||
+		strings.Contains(msg, "broken pipe")
 }
 
 func listenPort() string {
