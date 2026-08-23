@@ -29,6 +29,10 @@ type errorDetail struct {
 	Message string `json:"message"`
 }
 
+type greetingBody struct {
+	DisplayText string `json:"displayText"`
+}
+
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -58,6 +62,7 @@ func main() {
 func routes(a *app) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", a.healthz)
+	mux.HandleFunc("GET /v1/greeting", a.greeting)
 	return mux
 }
 
@@ -142,6 +147,40 @@ func (a *app) healthz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	var displayText string
+	if err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "greeting_not_found", "Greeting not found")
+			return
+		}
+		if isDBUnavailable(err) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
+		return
+	}
+	if strings.TrimSpace(displayText) == "" {
+		writeError(w, http.StatusConflict, "invalid_greeting", "Greeting is not valid")
+		return
+	}
+	writeJSON(w, http.StatusOK, greetingBody{DisplayText: displayText})
+}
+
+func isDBUnavailable(err error) bool {
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "connection refused") ||
+		strings.Contains(msg, "no such host") ||
+		strings.Contains(msg, "server closed the connection") ||
+		strings.Contains(msg, "bad connection") ||
+		strings.Contains(msg, "timeout") ||
+		strings.Contains(msg, "broken pipe")
 }
 
 func listenPort() string {
