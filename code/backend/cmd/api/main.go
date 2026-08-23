@@ -139,7 +139,8 @@ func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var displayText string
-	if err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText); err != nil {
+	err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			writeError(w, http.StatusNotFound, "greeting_not_found", "Greeting not found")
 			return
