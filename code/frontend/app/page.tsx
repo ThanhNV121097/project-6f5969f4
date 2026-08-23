@@ -1,3 +1,9 @@
+import { HelloWord } from '../components/HelloWord';
+
 export default function Home() {
-  return <main className="page-shell">{/* Story components mount here. */}</main>;
+  return (
+    <main className="page-shell">
+      <HelloWord />
+    </main>
+  );
 }
