@@ -58,6 +58,7 @@ func main() {
 func routes(a *app) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", a.healthz)
+	mux.HandleFunc("GET /v1/greeting", a.greeting)
 	return mux
 }
 
