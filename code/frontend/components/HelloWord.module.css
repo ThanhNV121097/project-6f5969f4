@@ -5,6 +5,7 @@
   justify-content: center;
 }
 
-.text {
+.text,
+.error {
   margin: 0;
 }
