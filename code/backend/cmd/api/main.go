@@ -83,7 +83,7 @@ func applyMigrations(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	entries, err := migrationFiles.ReadDir("migrations")
+	entries, err := os.ReadDir("migrations")
 	if err != nil {
 		return err
 	}
