@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,9 +15,6 @@ import (
 
 	_ "github.com/lib/pq"
 )
-
-//go:embed migrations/*.up.sql
-var migrationFiles embed.FS
 
 type app struct {
 	db *sql.DB
