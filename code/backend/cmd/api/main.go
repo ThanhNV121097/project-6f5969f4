@@ -113,7 +113,7 @@ func applyMigration(ctx context.Context, db *sql.DB, name string) error {
 		return nil
 	}
 
-	sqlBytes, err := migrationFiles.ReadFile("migrations/" + name)
+	sqlBytes, err := os.ReadFile("migrations/" + name)
 	if err != nil {
 		return err
 	}
