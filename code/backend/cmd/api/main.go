@@ -132,16 +132,27 @@ func applyMigration(ctx context.Context, db *sql.DB, name string) error {
 	return tx.Commit()
 }
 
-func (a *app) healthz(w http.ResponseWriter, r *http.Request) {
+
+func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 
-	var one int
-	if err := a.db.QueryRowContext(ctx, `SELECT 1`).Scan(&one); err != nil || one != 1 {
-		writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
+	var displayText string
+	if err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "greeting_not_found", "Greeting not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+
+	if strings.TrimSpace(displayText) == "" {
+		writeError(w, http.StatusConflict, "invalid_greeting", "Greeting is not valid")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"displayText": displayText})
 }
 
 func listenPort() string {
