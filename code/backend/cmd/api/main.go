@@ -144,6 +144,10 @@ func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "greeting_not_found", "Greeting not found")
 			return
 		}
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
+			return
+		}
 		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
 		return
 	}
