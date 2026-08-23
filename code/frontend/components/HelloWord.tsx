@@ -6,8 +6,13 @@ import styles from './HelloWord.module.css';
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
+type GreetingState =
+  | { status: 'loading' }
+  | { status: 'ready'; displayText: string }
+  | { status: 'error' };
+
 export function HelloWord() {
-  const [displayText, setDisplayText] = useState('');
+  const [state, setState] = useState<GreetingState>({ status: 'loading' });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -21,17 +26,27 @@ export function HelloWord() {
           throw new Error('Failed to load greeting');
         }
 
-        return response.json() as Promise<{ displayText: string }>;
+        return response.json() as Promise<{ displayText?: unknown }>;
       })
-      .then((data) => setDisplayText(data.displayText))
-      .catch(() => setDisplayText(''));
+      .then((data) => {
+        if (typeof data.displayText !== 'string' || data.displayText.length === 0) {
+          throw new Error('Failed to load greeting');
+        }
+
+        setState({ status: 'ready', displayText: data.displayText });
+      })
+      .catch(() => setState({ status: 'error' }));
 
     return () => controller.abort();
   }, []);
 
   return (
     <section className={styles.shell} aria-label="Greeting">
-      <p className={styles.text}>{displayText}</p>
+      {state.status === 'ready' ? (
+        <p className={styles.text}>{state.displayText}</p>
+      ) : state.status === 'error' ? (
+        <p className={styles.error}>Unable to load greeting</p>
+      ) : null}
     </section>
   );
 }
