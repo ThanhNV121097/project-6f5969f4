@@ -1,10 +1,21 @@
 import styles from './HelloWord.module.css';
-import { greetingMock } from '../lib/mock/persist-and-serve-text';
 
-export function HelloWord() {
+const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+
+export async function HelloWord() {
+  const response = await fetch(`${apiBase}/v1/greeting`, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to load greeting');
+  }
+
+  const data: { displayText: string } = await response.json();
+
   return (
     <section className={styles.shell} aria-label="Greeting">
-      <p className={styles.text}>{greetingMock.displayText}</p>
+      <p className={styles.text}>{data.displayText}</p>
     </section>
   );
 }
