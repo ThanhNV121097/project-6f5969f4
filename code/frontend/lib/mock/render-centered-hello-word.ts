@@ -9,14 +9,17 @@ export type GreetingResponse =
       displayText: string;
     }
   | {
+      status: "loading";
+    }
+  | {
+      status: "empty";
+    }
+  | {
       status: "error";
       error: GreetingError;
     };
 
 export const greetingMock: GreetingResponse = {
-  status: "error",
-  error: {
-    code: "service_unavailable",
-    message: "Service unavailable",
-  },
+  status: "ready",
+  displayText: "Hello Word",
 };
