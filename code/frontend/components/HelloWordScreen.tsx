@@ -1,29 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./HelloWordScreen.module.css";
 import { greetingMock } from "../lib/mock/render-centered-hello-word";
 
-export type HelloWordScreenState = "ready" | "loading" | "empty" | "error";
-
 export default function HelloWordScreen() {
-  const [state] = useState<HelloWordScreenState>("ready");
+  const searchParams = useSearchParams();
+  const state = searchParams.get("state");
 
-  const content = useMemo(() => {
-    if (state === "loading") {
-      return "Loading";
-    }
+  let content = greetingMock.displayText;
 
-    if (state === "empty") {
-      return "Greeting not found";
-    }
-
-    if (state === "error") {
-      return "Service unavailable";
-    }
-
-    return greetingMock.displayText;
-  }, [state]);
+  if (state === "loading") {
+    content = "Loading";
+  } else if (state === "empty") {
+    content = "Greeting not found";
+  } else if (state === "error") {
+    content = "Service unavailable";
+  }
 
   return (
     <main className={styles.screen} aria-label="Greeting screen">
