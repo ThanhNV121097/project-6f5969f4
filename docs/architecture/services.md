@@ -31,6 +31,8 @@ Rules:
 
 Purpose: report backend and database readiness after migrations.
 
+Auth: none.
+
 Request: no body.
 
 Success `200 OK`:
@@ -61,6 +63,8 @@ Readiness rules:
 
 Purpose: return stored greeting text for main page.
 
+Auth: none.
+
 Request: no body.
 
 Success `200 OK`:
@@ -70,6 +74,13 @@ Success `200 OK`:
   "displayText": "Hello Word"
 }
 ```
+
+Response contract:
+
+- `displayText` is a required string.
+- `displayText` comes from `greetings.display_text` for canonical row `id = 1`.
+- Backend preserves spelling, spacing, and case. No trimming or localization in successful response.
+- Shape matches reviewed frontend mock module `greetingMock`: `{ displayText: 'Hello Word' }`.
 
 Failures:
 
@@ -91,6 +102,21 @@ Response example:
 }
 ```
 
+Frontend handling requirement:
+
+- Page may call this endpoint directly through deployment proxy path `/api/v1/greeting` or configured backend URL plus `/v1/greeting`.
+- On any non-`200` response, invalid JSON, missing `displayText`, or network failure, page renders its error state instead of blank content.
+
 ## CORS
 
 No custom CORS policy in scaffold. Local compose uses frontend-to-browser API URL `http://localhost:8080`; backend story may allow browser origin if direct client fetch is used.
+
+## Story extension — Render centered Hello Word
+
+No new endpoint is needed beyond `GET /v1/greeting`. This story consumes that endpoint to render the centered page.
+
+Migration plan impact:
+
+- No service migration needed.
+- Backward compatibility is unchanged because response shape already matches reviewed mock contract.
+- Safe on populated data because no API field is renamed or removed.
