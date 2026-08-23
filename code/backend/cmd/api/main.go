@@ -58,6 +58,7 @@ func main() {
 func routes(a *app) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", a.healthz)
+	mux.HandleFunc("GET /v1/greeting", a.greeting)
 	return mux
 }
 
@@ -131,7 +132,6 @@ func applyMigration(ctx context.Context, db *sql.DB, name string) error {
 	}
 	return tx.Commit()
 }
-
 func (a *app) healthz(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
@@ -141,7 +141,35 @@ func (a *app) healthz(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
 		return
 	}
+
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	var displayText string
+	err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "greeting_not_found", "Greeting not found")
+			return
+		}
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
+		return
+	}
+
+	if strings.TrimSpace(displayText) == "" {
+		writeError(w, http.StatusConflict, "invalid_greeting", "Greeting is not valid")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"displayText": displayText})
 }
 
 func listenPort() string {
