@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #FFFFFF;
+  --color-text: #000000;
+  --space-6: 24px;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --text-base-size: 16px;
+  --text-base-line-height: normal;
+  --text-base-weight: 400;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-full: 0;
+  --border-width: 0;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --duration-fast: 0ms;
+  --duration-base: 0ms;
+  --easing: linear;
+  --z-base: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base-size);
+  font-weight: var(--text-base-weight);
+  line-height: var(--text-base-line-height);
+}
+
+.page-shell {
+  min-height: 100vh;
+  margin: 0;
+  padding: var(--space-6);
+}
