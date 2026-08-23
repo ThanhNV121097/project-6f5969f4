@@ -7,6 +7,7 @@
 - All JSON responses use `application/json`.
 - Successful responses return only data needed by caller.
 - Error responses use one envelope everywhere.
+- Public read endpoints require no authentication unless stated otherwise.
 
 ## Error envelope
 
@@ -24,12 +25,15 @@ Rules:
 - `code` is stable, lower snake case.
 - `message` is safe for users and logs; no secrets or database internals.
 - Unexpected server errors use `internal_error`.
+- Error responses do not include `displayText`.
 
 ## Endpoints
 
 ### `GET /healthz`
 
 Purpose: report backend and database readiness after migrations.
+
+Auth: none.
 
 Request: no body.
 
@@ -61,6 +65,8 @@ Readiness rules:
 
 Purpose: return stored greeting text for main page.
 
+Auth: none.
+
 Request: no body.
 
 Success `200 OK`:
@@ -71,12 +77,26 @@ Success `200 OK`:
 }
 ```
 
+Contract source:
+
+```ts
+export const greetingMock = {
+  displayText: 'Hello Word',
+} as const;
+```
+
+Mapping:
+
+| API field | Source | Type | Null | Transform |
+|---|---|---|---:|---|
+| `displayText` | `greetings.display_text` for row `id = 1` | string | no | none |
+
 Failures:
 
 | Status | Code | Message | Cause |
 |---:|---|---|---|
 | `404` | `greeting_not_found` | `Greeting not found` | Canonical row `id = 1` missing |
-| `409` | `invalid_greeting` | `Greeting is not valid` | Stored text is empty or whitespace |
+| `409` | `invalid_greeting` | `Greeting is not valid` | Stored text is empty or whitespace, or storage state is ambiguous |
 | `503` | `service_unavailable` | `Service unavailable` | PostgreSQL unavailable |
 | `500` | `internal_error` | `Internal server error` | Unexpected backend failure |
 
@@ -90,6 +110,13 @@ Response example:
   }
 }
 ```
+
+Implementation notes:
+
+- Query canonical row by `id = 1`.
+- Return stored `display_text` exactly as `displayText`.
+- Do not cache or fall back when PostgreSQL fails.
+- Duplicate greeting rows are prevented by schema. If future data corruption or migration drift makes the single greeting ambiguous, return `409 invalid_greeting` and no `displayText`.
 
 ## CORS
 
