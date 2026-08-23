@@ -153,6 +153,20 @@ func (a *app) greeting(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 
+	var rowCount int
+	if err := a.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM greetings`).Scan(&rowCount); err != nil {
+		if isDBUnavailable(err) {
+			writeError(w, http.StatusServiceUnavailable, "service_unavailable", "Service unavailable")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
+		return
+	}
+	if rowCount != 1 {
+		writeError(w, http.StatusInternalServerError, "internal_error", "Internal server error")
+		return
+	}
+
 	var displayText string
 	if err := a.db.QueryRowContext(ctx, `SELECT display_text FROM greetings WHERE id = 1`).Scan(&displayText); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
