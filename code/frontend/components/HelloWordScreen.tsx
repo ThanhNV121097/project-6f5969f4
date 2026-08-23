@@ -4,6 +4,14 @@ import styles from "./HelloWordScreen.module.css";
 import { greetingMock } from "../lib/mock/render-centered-hello-word";
 
 function GreetingMessage() {
+  if (greetingMock.status === "loading") {
+    return <p className={styles.message}>Loading</p>;
+  }
+
+  if (greetingMock.status === "empty") {
+    return <p className={styles.message}>Greeting not found</p>;
+  }
+
   if (greetingMock.status === "error") {
     return <p className={styles.message}>{greetingMock.error.message}</p>;
   }
